@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAPPRIJS — elke paar dagen een trede lager</title>
+<style>
+:root{
+  --bg:#f6f3ec;
+  --ink:#14171c;
+  --muted:#6b7280;
+  --line:#e3ddd0;
+  --card:#ffffff;
+  --accent:#0e8f6e;       /* clearance / besparing */
+  --accent-dark:#0a6e54;
+  --urgent:#e8a33d;       /* volgende afprijzing */
+  --sold:#b23b3b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+
+header{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(246,243,236,0.92);backdrop-filter:blur(8px);z-index:50}
+.bar{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:900;font-size:22px;letter-spacing:3px}
+.logo b{color:var(--accent)}
+.nav{display:flex;gap:22px;font-size:14px;color:var(--muted)}
+.nav a{text-decoration:none;cursor:pointer}
+.nav a:hover{color:var(--ink)}
+.cart{font-size:14px;font-weight:700}
+.cart b{color:var(--accent)}
+
+.hero{padding:56px 0 40px;border-bottom:1px solid var(--line)}
+.hero h1{font-size:46px;line-height:1.08;font-weight:900;letter-spacing:-1.5px;max-width:14ch}
+.hero p{margin-top:16px;font-size:17px;color:var(--muted);max-width:60ch}
+.legend{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.step-chip{display:flex;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-width:120px}
+.step-chip .t{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.step-chip .v{font-size:20px;font-weight:800}
+.step-arrow{color:var(--muted);font-size:18px}
+.step-chip.gone{border-style:dashed;opacity:.7}
+.step-chip.gone .v{color:var(--sold)}
+
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:22px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+.controls .pill{background:var(--ink);color:#fff;border-radius:999px;padding:7px 16px;font-weight:700;font-size:13px}
+.controls button{font:inherit;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;cursor:pointer;color:var(--ink);font-weight:600}
+.controls button:hover{border-color:var(--ink)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding:32px 0 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(20,23,28,0.08)}
+.thumb{height:170px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative}
+.tag{position:absolute;top:12px;left:12px;background:var(--ink);color:#fff;font-size:11px;font-weight:800;letter-spacing:.5px;padding:5px 10px;border-radius:999px}
+.tag.last{background:var(--accent)}
+.stock{position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.92);color:var(--ink);font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;border:1px solid var(--line)}
+.stock.low{color:var(--sold)}
+.body{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.brand{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.name{font-size:15px;font-weight:700;flex:1}
+.prices{display:flex;align-items:baseline;gap:10px;margin-top:4px}
+.now{font-size:28px;font-weight:900;color:var(--accent);display:inline-block;transition:color .2s}
+.now.flash{animation:pf .8s ease}
+@keyframes pf{0%{transform:scale(1)}25%{transform:scale(1.18);color:var(--urgent)}100%{transform:scale(1)}}
+.was{font-size:14px;color:var(--muted);text-decoration:line-through}
+.save{font-size:12px;font-weight:700;color:var(--accent)}
+
+.stair{display:flex;gap:4px;margin:10px 0 4px;align-items:flex-end;height:34px}
+.tread{flex:1;background:var(--line);border-radius:4px 4px 0 0;position:relative}
+.tread.done{background:var(--accent)}
+.tread.active{background:var(--accent);box-shadow:0 0 0 2px rgba(14,143,110,.25)}
+.tread.future{background:var(--line)}
+.tread:nth-child(1){height:40%}
+.tread:nth-child(2){height:62%}
+.tread:nth-child(3){height:100%}
+
+.next{font-size:12px;color:var(--muted);min-height:18px}
+.next b{color:var(--urgent)}
+.next.bottom{color:var(--accent);font-weight:700}
+
+.buy{margin-top:12px;border:none;background:var(--ink);color:#fff;font:inherit;font-weight:800;padding:12px;border-radius:12px;cursor:pointer;transition:background .15s}
+.buy:hover{background:#000}
+.buy.added{background:var(--accent)}
+.buy:disabled{background:var(--sold);cursor:not-allowed;opacity:.85}
+
+footer{border-top:1px solid var(--line);padding:30px 0;font-size:13px;color:var(--muted);text-align:center}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(26px);background:var(--accent);color:#fff;padding:12px 22px;border-radius:999px;font-weight:800;font-size:14px;box-shadow:0 10px 28px rgba(14,143,110,.35);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(20,23,28,.5);display:none;align-items:center;justify-content:center;z-index:120}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:26px;width:92%;max-width:420px}
+.modal h2{font-size:18px;margin-bottom:18px}
+.modal label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+.modal input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+.modal .row{display:flex;gap:18px}
+.modal .btns{display:flex;gap:10px;margin-top:22px}
+.modal .btns button{flex:1;padding:11px;border-radius:10px;border:none;font:inherit;font-weight:700;cursor:pointer}
+.modal .btns .ok{background:var(--ink);color:#fff}
+.modal .btns .no{background:var(--line);color:var(--ink)}
+
+@media(max-width:640px){.hero h1{font-size:34px}.nav{display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <div class="logo">TRAP<b>PRIJS</b></div>
+    <nav class="nav">
+      <a>Hoe het werkt</a><a>Alle restpartijen</a><a>Over</a>
+    </nav>
+    <div class="cart">🛒 <b id="cart">0</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Elke paar dagen een trede lager.</h1>
+    <p>Restpartijen en incourante maten gaan in stappen omlaag. Wachten loont — maar elke trede is <b>op = op</b>. Geen klok die per seconde tikt: een eerlijke, voorspelbare afprijstrap. Je rekent direct af tegen de prijs van vandaag.</p>
+    <div class="legend" id="legend"></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="controls">
+    <span class="pill">Restpartij &gt; 6 maanden</span>
+    <span id="meta">Volgende trede elke 20s (demo)</span>
+    <span style="flex:1"></span>
+    <button onclick="openSettings()">⚙ Demo-instellingen</button>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer class="wrap">
+  TRAPPRIJS — demo / concept voor het versneld ruimen van oude voorraad. Tijd is voor de demo versneld. Geen echte verkoop.
+</footer>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2>Demo-instellingen</h2>
+    <label for="daylen">Lengte van één "dag"/trede (seconden)</label>
+    <input type="number" id="daylen" min="3" max="600" value="20">
+    <div class="row">
+      <div style="flex:1"><label for="s1">Trede 1 korting (%)</label><input type="number" id="s1" min="1" max="95" value="30"></div>
+      <div style="flex:1"><label for="s2">Trede 2 korting (%)</label><input type="number" id="s2" min="1" max="95" value="50"></div>
+      <div style="flex:1"><label for="s3">Trede 3 korting (%)</label><input type="number" id="s3" min="1" max="95" value="70"></div>
+    </div>
+    <div class="btns">
+      <button class="ok" onclick="applySettings()">Toepassen</button>
+      <button class="no" onclick="closeSettings()">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRODUCTS = [
+  {brand:'Verbatim', name:'2x Sync & Charge USB-C kabel 100W', cat:'Elektronica', emoji:'🔌', price:25.98, stock:14},
+  {brand:'Morsø', name:'Braadpan staal Ø 24 cm', cat:'Wonen', emoji:'🍳', price:79.95, stock:6},
+  {brand:'Philips', name:'Sonicare 7100 elektrische tandenborstel', cat:'Verzorging', emoji:'🪥', price:399.94, stock:3},
+  {brand:'Zuiver', name:'Lesley vloerlamp', cat:'Wonen', emoji:'💡', price:189.00, stock:5},
+  {brand:'Vivex', name:'Drinkfontein katten & honden 2,5 L', cat:'Dier', emoji:'🐱', price:49.95, stock:9},
+  {brand:'Elho', name:'2x Loft Urban bloempot + houder', cat:'Tuin', emoji:'🪴', price:29.98, stock:11},
+  {brand:'Fischer', name:'FIXtainer Duopower 105-delig', cat:'DHZ', emoji:'🔩', price:40.79, stock:8},
+  {brand:'Solis', name:'50x Eco vacuümzakken 20x30 cm', cat:'Huishoud', emoji:'📦', price:44.99, stock:12},
+  {brand:'Sunred', name:'Beschermhoes parasol RD-SILVER', cat:'Tuin', emoji:'☂️', price:34.95, stock:4},
+  {brand:'Kayori', name:'Katoensatijn dekbedovertrek 140x220', cat:'Wonen', emoji:'🛏️', price:99.95, stock:7},
+  {brand:'Weber', name:'Lumin elektrische barbecue', cat:'Tuin', emoji:'🍖', price:329.00, stock:2},
+  {brand:'Marcel’s', name:'2x Green Soap wasmiddel 3 L', cat:'Huishoud', emoji:'🧴', price:59.98, stock:15}
+];
+
+let steps = [30, 50, 70];      // korting % per trede
+let dayLen = 20;               // seconden per trede (demo)
+let stepIndex = 0;             // huidige trede (0-based)
+let secsInStep = 0;            // verstreken seconden in deze trede
+let cart = 0;
+
+const fmt = p => '€' + p.toFixed(2).replace('.', ',');
+const priceAt = (orig, i) => Math.max(+(orig * (1 - steps[Math.min(i, steps.length-1)]/100)).toFixed(2), 0.01);
+
+function renderLegend(){
+  const el = document.getElementById('legend');
+  let html = '';
+  steps.forEach((s,i)=>{
+    const cls = i < stepIndex ? 'gone' : '';
+    const label = i===0 ? 'Nu' : ('Na ' + i + (i===1?' dag':' dagen'));
+    html += `<div class="step-chip ${cls}"><span class="t">${label}</span><span class="v">-${s}%</span></div>`;
+    if(i < steps.length-1) html += '<span class="step-arrow">→</span>';
+  });
+  html += '<span class="step-arrow">→</span><div class="step-chip gone"><span class="t">Daarna</span><span class="v">weg</span></div>';
+  el.innerHTML = html;
+}
+
+function nextStepText(){
+  if(stepIndex >= steps.length-1) return null;
+  const remain = Math.max(0, dayLen - secsInStep);
+  const m = Math.floor(remain/60), s = remain%60;
+  return {t:(m+':'+String(s).padStart(2,'0')), pct:steps[stepIndex+1]};
+}
+
+function render(){
+  renderLegend();
+  const grid = document.getElementById('grid');
+  const ns = nextStepText();
+  grid.innerHTML = PRODUCTS.map((p, idx) => {
+    const cur = priceAt(p.price, stepIndex);
+    const off = Math.round((1 - cur/p.price)*100);
+    const sold = p.stock <= 0;
+    const last = stepIndex >= steps.length-1;
+    const treads = steps.map((_,i)=>{
+      const c = i < stepIndex ? 'done' : (i === stepIndex ? 'active' : 'future');
+      return `<div class="tread ${c}"></div>`;
+    }).join('');
+    let nextLine;
+    if(sold) nextLine = `<span style="color:var(--sold);font-weight:700">Uitverkocht</span>`;
+    else if(last) nextLine = `<span>Laagste trede — op = op</span>`;
+    else nextLine = `Volgende trede over <b>${ns.t}</b> → ${fmt(priceAt(p.price, stepIndex+1))} (-${ns.pct}%)`;
+    return `
+    <div class="card" data-i="${idx}">
+      <div class="thumb" style="background:linear-gradient(135deg,#eef0ec,#e2e8e2)">
+        <span class="tag ${last?'last':''}">Trede ${Math.min(stepIndex+1,steps.length)}/${steps.length}</span>
+        <span class="stock ${p.stock<=3?'low':''}">${sold?'0':('nog '+p.stock)} • op=op</span>
+        <span>${p.emoji}</span>
+      </div>
+      <div class="body">
+        <span class="brand">${p.cat} · ${p.brand}</span>
+        <span class="name">${p.name}</span>
+        <div class="stair">${treads}</div>
+        <div class="prices">
+          <span class="now">${fmt(cur)}</span>
+          <span class="was">${fmt(p.price)}</span>
+        </div>
+        <span class="save">je bespaart ${fmt(p.price-cur)} (-${off}%)</span>
+        <span class="next ${last?'bottom':''}">${nextLine}</span>
+        <button class="buy" ${sold?'disabled':''} onclick="buy(${idx},this)">${sold?'Uitverkocht':'Koop nu — '+fmt(cur)}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buy(i, btn){
+  const p = PRODUCTS[i];
+  if(p.stock <= 0) return;
+  p.stock--;
+  cart++;
+  document.getElementById('cart').textContent = cart;
+  btn.textContent = '✓ Toegevoegd';
+  btn.classList.add('added');
+  setTimeout(render, 900);
+}
+
+function flashPrices(){
+  document.querySelectorAll('#grid .card').forEach(card=>{
+    const el = card.querySelector('.now');
+    if(el){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  });
+}
+
+let toastTimer;
+function toast(msg){
+  let t = document.getElementById('toast');
+  if(!t){ t = document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function tick(){
+  // lichte 'op = op'-druk: af en toe koopt iemand anders iets
+  if(Math.random() < 0.5){
+    const live = PRODUCTS.filter(p=>p.stock>0);
+    if(live.length){ live[Math.floor(Math.random()*live.length)].stock--; }
+  }
+  secsInStep++;
+  if(secsInStep >= dayLen && stepIndex < steps.length-1){
+    stepIndex++;
+    secsInStep = 0;
+    render();
+    flashPrices();
+    toast('📉 Trede lager — nu -' + steps[stepIndex] + '% op alles');
+    return;
+  }
+  render();
+}
+setInterval(tick, 1000);
+
+function openSettings(){
+  document.getElementById('daylen').value = dayLen;
+  document.getElementById('s1').value = steps[0];
+  document.getElementById('s2').value = steps[1];
+  document.getElementById('s3').value = steps[2];
+  document.getElementById('modal').classList.add('open');
+}
+function closeSettings(){ document.getElementById('modal').classList.remove('open'); }
+function applySettings(){
+  const d = parseInt(document.getElementById('daylen').value);
+  const a = [1,2,3].map(n=>parseInt(document.getElementById('s'+n).value));
+  if(isNaN(d) || d < 3){ alert('Kies minstens 3 seconden per trede.'); return; }
+  if(a.some(x=>isNaN(x)||x<1||x>95)){ alert('Kortingen moeten tussen 1 en 95% liggen.'); return; }
+  if(!(a[0] < a[1] && a[1] < a[2])){ alert('Elke trede moet dieper zijn dan de vorige (bv. 30 < 50 < 70).'); return; }
+  dayLen = d; steps = a;
+  document.getElementById('meta').textContent = 'Volgende trede elke ' + dayLen + 's (demo)';
+  closeSettings();
+  render();
+}
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeSettings(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSettings(); });
+
+render();
+</script>
+</body>
+</html>
