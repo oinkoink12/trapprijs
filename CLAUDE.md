@@ -13,8 +13,13 @@ vandaag; elke aankoop is een losse, definitieve regel.
 
 Dit is bewust een **andere methodiek én ander design** dan de zusterrepo
 [`firesale`](../firesale), die een doorlopende, tijdgedreven prijserosie
-gebruikt. Twee UX-experimenten voor hetzelfde iBOOD-opruimprobleem, op
-dezelfde echte productdataset.
+gebruikt — inmiddels uitgebreid tot 5 mechanieken (vast, hussel-drop,
+hot-deal jacht, rad van afprijzing, en **branding**: alles begint
+vergrendeld en wordt periodiek "met bombarie" onthuld). Een derde zuster
+is [`fashion-redesign`](../fashion-redesign): geen prijsmechaniek, maar
+een UX/design-experiment (huidige iBOOD-look ⇄ nieuw design via toggle,
+live op `redesign-delta-smoky.vercel.app`). Samen drie UX-experimenten
+voor hetzelfde iBOOD-opruimprobleem, op dezelfde echte productdataset.
 
 ## Structuur
 
